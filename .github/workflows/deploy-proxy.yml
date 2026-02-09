@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'proxy/**'
-      - '.github/workflows/deploy-proxy.yml'
   workflow_dispatch:
 
 permissions:
@@ -65,40 +62,9 @@ jobs:
           cp proxy/package.json dist/
           cp proxy/package-lock.json dist/ 2>/dev/null || true
 
-      - name: Generate deployment info
+      - name: Copy README
         run: |
-          cat > dist/README.md << 'EOF'
-          # HSBC Payment Proxy
-
-          A simple Node.js proxy server that adds User-Agent headers to HSBC API requests for NetSuite integration.
-
-          ## Quick Start
-
-          ```bash
-          npm install
-          node server.js
-          ```
-
-          ## Environment Variables
-
-          - `PORT`: Server port (default: 3000)
-          - `HOST`: Server host (default: localhost)
-          - `NODE_ENV`: production or development
-
-          ## Endpoints
-
-          - `GET /health` - Health check
-          - `POST /proxy` - Forward requests to HSBC API with User-Agent header
-
-          ## Deployment
-
-          This proxy can be deployed to:
-          - Railway.app
-          - Heroku
-          - AWS EC2
-          - Self-hosted server
-
-          EOF
+          cp README.md dist/README.md
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -120,6 +86,6 @@ jobs:
         run: |
           echo "## ✅ Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Service**: HSBC Payment Proxy" >> $GITHUB_STEP_SUMMARY
+          echo "**Service**: NetSuite External URL Proxy" >> $GITHUB_STEP_SUMMARY
           echo "**Status**: Successfully deployed" >> $GITHUB_STEP_SUMMARY
           echo "**Deployment URL**: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
