@@ -1,0 +1,25 @@
+{
+  "name": "hsbc-payment-proxy",
+  "version": "1.0.0",
+  "description": "HSBC Payment Integration Proxy - Adds User-Agent header to NetSuite requests",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "NODE_ENV=development node server.js",
+    "build": "echo 'No build needed'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "hsbc",
+    "netsuite",
+    "proxy",
+    "user-agent",
+    "integration"
+  ],
+  "author": "Mike Min Myat Oo",
+  "license": "MIT",
+  
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

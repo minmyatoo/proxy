@@ -1,0 +1,125 @@
+name: Deploy Proxy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'proxy/**'
+      - '.github/workflows/deploy-proxy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          cd proxy
+          npm install
+
+      - name: Verify proxy configuration
+        run: |
+          cd proxy
+          node -c server.js
+          echo "✅ Proxy configuration is valid"
+
+  build:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          cd proxy
+          npm install
+
+      - name: Create distribution
+        run: |
+          mkdir -p dist
+          cp proxy/server.js dist/
+          cp proxy/package.json dist/
+          cp proxy/package-lock.json dist/ 2>/dev/null || true
+
+      - name: Generate deployment info
+        run: |
+          cat > dist/README.md << 'EOF'
+          # HSBC Payment Proxy
+
+          A simple Node.js proxy server that adds User-Agent headers to HSBC API requests for NetSuite integration.
+
+          ## Quick Start
+
+          ```bash
+          npm install
+          node server.js
+          ```
+
+          ## Environment Variables
+
+          - `PORT`: Server port (default: 3000)
+          - `HOST`: Server host (default: localhost)
+          - `NODE_ENV`: production or development
+
+          ## Endpoints
+
+          - `GET /health` - Health check
+          - `POST /proxy` - Forward requests to HSBC API with User-Agent header
+
+          ## Deployment
+
+          This proxy can be deployed to:
+          - Railway.app
+          - Heroku
+          - AWS EC2
+          - Self-hosted server
+
+          EOF
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'dist'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Deployment summary
+        run: |
+          echo "## ✅ Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Service**: HSBC Payment Proxy" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: Successfully deployed" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment URL**: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
